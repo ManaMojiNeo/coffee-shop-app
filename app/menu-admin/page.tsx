@@ -27,6 +27,7 @@ export default function MenuAdminPage() {
   const [price, setPrice] = useState("");
   const [cost, setCost] = useState("");
   const [story, setStory] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
@@ -34,6 +35,7 @@ export default function MenuAdminPage() {
   const [editCost, setEditCost] = useState("");
   const [editCategory, setEditCategory] = useState("COFFEE_HOT");
   const [editStory, setEditStory] = useState("");
+  const [editImageUrl, setEditImageUrl] = useState("");
 
   async function load() {
     try {
@@ -62,11 +64,13 @@ export default function MenuAdminPage() {
         price: Number(price),
         cost: Number(cost || 0),
         story,
+        imageUrl,
       });
       setName("");
       setPrice("");
       setCost("");
       setStory("");
+      setImageUrl("");
       load();
     } catch (err: any) {
       setError(err.message);
@@ -80,6 +84,7 @@ export default function MenuAdminPage() {
     setEditCost(item.cost);
     setEditCategory(item.category);
     setEditStory(item.story || "");
+    setEditImageUrl(item.imageUrl || "");
   }
 
   async function saveEdit(id: string) {
@@ -91,6 +96,7 @@ export default function MenuAdminPage() {
         price: Number(editPrice),
         cost: Number(editCost),
         story: editStory,
+        imageUrl: editImageUrl,
       });
       setEditingId(null);
       load();
@@ -177,6 +183,25 @@ export default function MenuAdminPage() {
               <input type="number" value={cost} onChange={(e) => setCost(e.target.value)} />
             </div>
             <div className="field">
+              <label>ลิงก์รูปภาพ (ไม่บังคับ)</label>
+              <input
+                type="text"
+                placeholder="https://..."
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+              />
+              {imageUrl && (
+                <div style={{ marginTop: 8 }}>
+                  <img
+                    src={imageUrl}
+                    alt="ตัวอย่างรูป"
+                    style={{ width: 100, height: 100, objectFit: "cover", borderRadius: 8 }}
+                    onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
+                  />
+                </div>
+              )}
+            </div>
+            <div className="field">
               <label>เรื่องราวของเมนู (ไม่บังคับ)</label>
               <input type="text" value={story} onChange={(e) => setStory(e.target.value)} />
             </div>
@@ -189,6 +214,7 @@ export default function MenuAdminPage() {
         <table className="list-table">
           <thead>
             <tr>
+              <th>รูป</th>
               <th>ชื่อเมนู</th>
               <th>หมวดหมู่</th>
               <th>ราคา</th>
@@ -202,6 +228,15 @@ export default function MenuAdminPage() {
               <tr key={item.id}>
                 {editingId === item.id ? (
                   <>
+                    <td>
+                      <input
+                        type="text"
+                        placeholder="https://..."
+                        value={editImageUrl}
+                        onChange={(e) => setEditImageUrl(e.target.value)}
+                        style={{ width: 110 }}
+                      />
+                    </td>
                     <td>
                       <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} />
                     </td>
@@ -242,6 +277,17 @@ export default function MenuAdminPage() {
                   </>
                 ) : (
                   <>
+                    <td>
+                      {item.imageUrl ? (
+                        <img
+                          src={item.imageUrl}
+                          alt={item.name}
+                          style={{ width: 40, height: 40, objectFit: "cover", borderRadius: 6 }}
+                        />
+                      ) : (
+                        "-"
+                      )}
+                    </td>
                     <td>{item.name}</td>
                     <td>{CATEGORY_LABELS[item.category]}</td>
                     <td>฿{item.price}</td>
