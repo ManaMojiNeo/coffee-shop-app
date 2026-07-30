@@ -20,7 +20,12 @@ export interface Sale {
   paymentMethod: "CASH" | "QR" | "CARD";
   total: string;
   createdAt: string;
-  items: { menuItemId: string; quantity: number; unitPrice: string }[];
+  items: {
+    menuItemId: string;
+    quantity: number;
+    unitPrice: string;
+    menuItem?: { id: string; name: string; cost: string; price: string };
+  }[];
 }
 
 export interface Expense {
