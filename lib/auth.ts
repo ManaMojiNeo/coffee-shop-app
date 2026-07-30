@@ -1,7 +1,13 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-me";
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  throw new Error(
+    "JWT_SECRET is not set. Set it in Vercel Environment Variables (Production and Preview) before deploying — this app no longer falls back to an insecure default secret."
+  );
+}
 
 export type TokenPayload = {
   userId: string;
