@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "คั่วบ้าน | Coffee Shop App",
+    title: "คั่วบ้าน คั่วด้วยใจ",
   description: "ระบบจัดการรายรับ-รายจ่ายร้านกาแฟ",
 };
 
