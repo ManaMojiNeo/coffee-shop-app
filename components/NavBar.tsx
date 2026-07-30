@@ -1,6 +1,18 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { getMe } from "@/lib/api";
 
 export default function NavBar() {
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  useEffect(() => {
+    getMe()
+      .then(() => setLoggedIn(true))
+      .catch(() => setLoggedIn(false));
+  }, []);
+
   return (
     <div className="navbar">
       <div className="nav-inner">
@@ -13,7 +25,7 @@ export default function NavBar() {
         <div className="nav-links">
           <Link href="/menu">เมนู</Link>
           <Link href="/requests">เสนอเมนู</Link>
-          <Link href="/menu-admin">จัดการเมนู</Link>
+          {loggedIn && <Link href="/menu-admin">จัดการเมนู</Link>}
           <Link href="/login" className="btn btn-primary">
             เข้าสู่ระบบ
           </Link>
