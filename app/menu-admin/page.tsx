@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import NavBar from "@/components/NavBar";
 import {
+  getMe,
   getMenu,
   createMenuItem,
   updateMenuItem,
@@ -36,6 +37,7 @@ export default function MenuAdminPage() {
 
   async function load() {
     try {
+      await getMe();
       const data = await getMenu();
       setItems(data.items);
     } catch (err: any) {
