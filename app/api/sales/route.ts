@@ -42,7 +42,29 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  for (const it of items) {
+    if (!Number.isFinite(it.quantity) || it.quantity <= 0) {
+      return NextResponse.json(
+        { error: "จำนวนสินค้าต้องมากกว่า 0" },
+        { status: 400 }
+      );
+    }
+    if (!Number.isFinite(it.unitPrice) || it.unitPrice <= 0) {
+      return NextResponse.json(
+        { error: "ราคาต่อหน่วยต้องมากกว่า 0" },
+        { status: 400 }
+      );
+    }
+  }
+
   const total = items.reduce((sum, it) => sum + it.quantity * it.unitPrice, 0);
+
+  if (!Number.isFinite(total) || total <= 0) {
+    return NextResponse.json(
+      { error: "ยอดขายรวมต้องมากกว่า 0" },
+      { status: 400 }
+    );
+  }
 
   const sale = await prisma.sale.create({
     data: {
