@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import NavBar from "@/components/NavBar";
 import {
@@ -16,26 +16,24 @@ import {
 
 const CATEGORIES = ["COFFEE_HOT", "COFFEE_ICED", "NON_CAFFEINE", "BAKERY"];
 
+const emptyForm = {
+  name: "",
+  category: "COFFEE_HOT",
+  price: "",
+  cost: "",
+  story: "",
+  imageUrl: "",
+};
+
 export default function MenuAdminPage() {
   const router = useRouter();
+  const formRef = useRef<HTMLDivElement>(null);
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const [name, setName] = useState("");
-  const [category, setCategory] = useState("COFFEE_HOT");
-  const [price, setPrice] = useState("");
-  const [cost, setCost] = useState("");
-  const [story, setStory] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
-
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editName, setEditName] = useState("");
-  const [editPrice, setEditPrice] = useState("");
-  const [editCost, setEditCost] = useState("");
-  const [editCategory, setEditCategory] = useState("COFFEE_HOT");
-  const [editStory, setEditStory] = useState("");
-  const [editImageUrl, setEditImageUrl] = useState("");
+  const [form, setForm] = useState(emptyForm);
 
   async function load() {
     try {
@@ -53,52 +51,55 @@ export default function MenuAdminPage() {
     load();
   }, []);
 
-  async function handleAdd(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    if (!name || !price) return;
-    try {
-      await createMenuItem({
-        name,
-        category,
-        price: Number(price),
-        cost: Number(cost || 0),
-        story,
-        imageUrl,
-      });
-      setName("");
-      setPrice("");
-      setCost("");
-      setStory("");
-      setImageUrl("");
-      load();
-    } catch (err: any) {
-      setError(err.message);
-    }
+  function updateField(field: keyof typeof emptyForm, value: string) {
+    setForm((f) => ({ ...f, [field]: value }));
   }
 
   function startEdit(item: MenuItem) {
     setEditingId(item.id);
-    setEditName(item.name);
-    setEditPrice(item.price);
-    setEditCost(item.cost);
-    setEditCategory(item.category);
-    setEditStory(item.story || "");
-    setEditImageUrl(item.imageUrl || "");
+    setForm({
+      name: item.name,
+      category: item.category,
+      price: item.price,
+      cost: item.cost,
+      story: item.story || "",
+      imageUrl: item.imageUrl || "",
+    });
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  async function saveEdit(id: string) {
+  function cancelEdit() {
+    setEditingId(null);
+    setForm(emptyForm);
     setError("");
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    if (!form.name || !form.price) return;
     try {
-      await updateMenuItem(id, {
-        name: editName,
-        category: editCategory,
-        price: Number(editPrice),
-        cost: Number(editCost),
-        story: editStory,
-        imageUrl: editImageUrl,
-      });
-      setEditingId(null);
+      if (editingId) {
+        await updateMenuItem(editingId, {
+          name: form.name,
+          category: form.category,
+          price: Number(form.price),
+          cost: Number(form.cost || 0),
+          story: form.story,
+          imageUrl: form.imageUrl,
+        });
+        setEditingId(null);
+      } else {
+        await createMenuItem({
+          name: form.name,
+          category: form.category,
+          price: Number(form.price),
+          cost: Number(form.cost || 0),
+          story: form.story,
+          imageUrl: form.imageUrl,
+        });
+      }
+      setForm(emptyForm);
       load();
     } catch (err: any) {
       setError(err.message);
@@ -109,6 +110,7 @@ export default function MenuAdminPage() {
     if (!confirm("ซ่อนเมนูนี้จากลูกค้าใช่ไหม? (กู้คืนได้ภายหลัง)")) return;
     try {
       await deleteMenuItem(id);
+      if (editingId === id) cancelEdit();
       load();
     } catch (err: any) {
       setError(err.message);
@@ -157,16 +159,25 @@ export default function MenuAdminPage() {
 
         {error && <div className="error-box">{error}</div>}
 
-        <div className="card" style={{ marginBottom: 32 }}>
-          <h3 style={{ marginTop: 0 }}>เพิ่มเมนูใหม่</h3>
-          <form onSubmit={handleAdd}>
+        <div className="card" style={{ marginBottom: 32 }} ref={formRef}>
+          <h3 style={{ marginTop: 0 }}>
+            {editingId ? `แก้ไขเมนู: ${form.name}` : "เพิ่มเมนูใหม่"}
+          </h3>
+          <form onSubmit={handleSubmit}>
             <div className="field">
               <label>ชื่อเมนู</label>
-              <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
+              <input
+                type="text"
+                value={form.name}
+                onChange={(e) => updateField("name", e.target.value)}
+              />
             </div>
             <div className="field">
               <label>หมวดหมู่</label>
-              <select value={category} onChange={(e) => setCategory(e.target.value)}>
+              <select
+                value={form.category}
+                onChange={(e) => updateField("category", e.target.value)}
+              >
                 {CATEGORIES.map((c) => (
                   <option key={c} value={c}>
                     {CATEGORY_LABELS[c]}
@@ -176,24 +187,32 @@ export default function MenuAdminPage() {
             </div>
             <div className="field">
               <label>ราคาขาย</label>
-              <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} />
+              <input
+                type="number"
+                value={form.price}
+                onChange={(e) => updateField("price", e.target.value)}
+              />
             </div>
             <div className="field">
               <label>ต้นทุน</label>
-              <input type="number" value={cost} onChange={(e) => setCost(e.target.value)} />
+              <input
+                type="number"
+                value={form.cost}
+                onChange={(e) => updateField("cost", e.target.value)}
+              />
             </div>
             <div className="field">
               <label>ลิงก์รูปภาพ (ไม่บังคับ)</label>
               <input
                 type="text"
                 placeholder="https://..."
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
+                value={form.imageUrl}
+                onChange={(e) => updateField("imageUrl", e.target.value)}
               />
-              {imageUrl && (
+              {form.imageUrl && (
                 <div style={{ marginTop: 8 }}>
                   <img
-                    src={imageUrl}
+                    src={form.imageUrl}
                     alt="ตัวอย่างรูป"
                     style={{ width: 100, height: 100, objectFit: "cover", borderRadius: 8 }}
                     onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
@@ -203,11 +222,22 @@ export default function MenuAdminPage() {
             </div>
             <div className="field">
               <label>เรื่องราวของเมนู (ไม่บังคับ)</label>
-              <input type="text" value={story} onChange={(e) => setStory(e.target.value)} />
+              <input
+                type="text"
+                value={form.story}
+                onChange={(e) => updateField("story", e.target.value)}
+              />
             </div>
-            <button type="submit" className="btn btn-gold" style={{ width: "100%" }}>
-              เพิ่มเมนู
-            </button>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button type="submit" className="btn btn-gold" style={{ flex: 1 }}>
+                {editingId ? "บันทึกการแก้ไข" : "เพิ่มเมนู"}
+              </button>
+              {editingId && (
+                <button type="button" className="btn btn-outline" onClick={cancelEdit}>
+                  ยกเลิก
+                </button>
+              )}
+            </div>
           </form>
         </div>
 
@@ -225,90 +255,37 @@ export default function MenuAdminPage() {
           </thead>
           <tbody>
             {items.map((item) => (
-              <tr key={item.id}>
-                {editingId === item.id ? (
-                  <>
-                    <td>
-                      <input
-                        type="text"
-                        placeholder="https://..."
-                        value={editImageUrl}
-                        onChange={(e) => setEditImageUrl(e.target.value)}
-                        style={{ width: 110 }}
-                      />
-                    </td>
-                    <td>
-                      <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} />
-                    </td>
-                    <td>
-                      <select value={editCategory} onChange={(e) => setEditCategory(e.target.value)}>
-                        {CATEGORIES.map((c) => (
-                          <option key={c} value={c}>
-                            {CATEGORY_LABELS[c]}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        value={editPrice}
-                        onChange={(e) => setEditPrice(e.target.value)}
-                        style={{ width: 70 }}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        value={editCost}
-                        onChange={(e) => setEditCost(e.target.value)}
-                        style={{ width: 70 }}
-                      />
-                    </td>
-                    <td>{item.isActive ? "แสดงอยู่" : "ซ่อนอยู่"}</td>
-                    <td>
-                      <button className="vote-btn" onClick={() => saveEdit(item.id)}>
-                        บันทึก
-                      </button>{" "}
-                      <button className="vote-btn" onClick={() => setEditingId(null)}>
-                        ยกเลิก
-                      </button>
-                    </td>
-                  </>
-                ) : (
-                  <>
-                    <td>
-                      {item.imageUrl ? (
-                        <img
-                          src={item.imageUrl}
-                          alt={item.name}
-                          style={{ width: 40, height: 40, objectFit: "cover", borderRadius: 6 }}
-                        />
-                      ) : (
-                        "-"
-                      )}
-                    </td>
-                    <td>{item.name}</td>
-                    <td>{CATEGORY_LABELS[item.category]}</td>
-                    <td>฿{item.price}</td>
-                    <td>฿{item.cost}</td>
-                    <td>{item.isActive ? "แสดงอยู่" : "ซ่อนอยู่"}</td>
-                    <td>
-                      <button className="vote-btn" onClick={() => startEdit(item)}>
-                        แก้ไข
-                      </button>{" "}
-                      {item.isActive ? (
-                        <button className="vote-btn" onClick={() => handleDelete(item.id)}>
-                          ลบ
-                        </button>
-                      ) : (
-                        <button className="vote-btn" onClick={() => handleRestore(item.id)}>
-                          กู้คืน
-                        </button>
-                      )}
-                    </td>
-                  </>
-                )}
+              <tr key={item.id} style={editingId === item.id ? { background: "#fff7e6" } : undefined}>
+                <td>
+                  {item.imageUrl ? (
+                    <img
+                      src={item.imageUrl}
+                      alt={item.name}
+                      style={{ width: 40, height: 40, objectFit: "cover", borderRadius: 6 }}
+                    />
+                  ) : (
+                    "-"
+                  )}
+                </td>
+                <td>{item.name}</td>
+                <td>{CATEGORY_LABELS[item.category]}</td>
+                <td>฿{item.price}</td>
+                <td>฿{item.cost}</td>
+                <td>{item.isActive ? "แสดงอยู่" : "ซ่อนอยู่"}</td>
+                <td>
+                  <button className="vote-btn" onClick={() => startEdit(item)}>
+                    แก้ไข
+                  </button>{" "}
+                  {item.isActive ? (
+                    <button className="vote-btn" onClick={() => handleDelete(item.id)}>
+                      ลบ
+                    </button>
+                  ) : (
+                    <button className="vote-btn" onClick={() => handleRestore(item.id)}>
+                      กู้คืน
+                    </button>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
