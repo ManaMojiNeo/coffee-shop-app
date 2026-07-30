@@ -1,23 +1,27 @@
+import NavBar from "@/components/NavBar";
+import Link from "next/link";
+
 export default function HomePage() {
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        textAlign: "center",
-        fontFamily: "sans-serif",
-        background: "#FBF4E9",
-        color: "#2A1B12",
-        padding: "2rem",
-      }}
-    >
-      <h1 style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>คั่วบ้าน</h1>
-      <p style={{ fontSize: "1.1rem", color: "#6B5A4B" }}>
-        ระบบจัดการรายรับ-รายจ่ายร้านกาแฟ — กำลังพัฒนา
-      </p>
+    <main>
+      <NavBar />
+      <div className="hero">
+        <div className="hero-inner">
+          <h1>คั่วบ้าน คั่วด้วยใจ</h1>
+          <p>
+            ร้านกาแฟเล็กๆ ที่คั่วเมล็ดเองทุกสัปดาห์ ดูเมนูทั้งหมดของเรา
+            หรือเสนอเมนูที่อยากให้มีได้เลย
+          </p>
+          <div className="hero-actions">
+            <Link href="/menu" className="btn btn-gold">
+              ดูเมนู
+            </Link>
+            <Link href="/requests" className="btn btn-outline" style={{ color: "#fff", borderColor: "rgba(255,255,255,0.55)" }}>
+              เสนอเมนูใหม่
+            </Link>
+          </div>
+        </div>
+      </div>
     </main>
   );
 }
