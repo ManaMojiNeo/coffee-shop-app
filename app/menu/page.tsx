@@ -7,6 +7,7 @@ import { getMenu, MenuItem, CATEGORY_LABELS } from "@/lib/api";
 export default function MenuPage() {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState<MenuItem | null>(null);
 
   useEffect(() => {
     getMenu()
@@ -36,7 +37,11 @@ export default function MenuPage() {
                 <div className="category-label">{CATEGORY_LABELS[cat]}</div>
                 <div className="menu-grid">
                   {catItems.map((item) => (
-                    <div className="menu-card" key={item.id}>
+                    <div
+                      className="menu-card"
+                      key={item.id}
+                      onClick={() => setSelected(item)}
+                    >
                       {item.imageUrl && (
                         <div className="menu-card-img">
                           <img src={item.imageUrl} alt={item.name} />
@@ -53,6 +58,28 @@ export default function MenuPage() {
             );
           })}
       </div>
+
+      {selected && (
+        <div className="menu-modal-overlay" onClick={() => setSelected(null)}>
+          <div className="menu-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="menu-modal-close" onClick={() => setSelected(null)}>
+              ✕
+            </button>
+            {selected.imageUrl && (
+              <div className="menu-modal-img">
+                <img src={selected.imageUrl} alt={selected.name} />
+              </div>
+            )}
+            <div className="menu-modal-body">
+              <p className="menu-modal-name">{selected.name}</p>
+              <span className="menu-modal-price">฿{selected.price}</span>
+              <p className="menu-modal-story">
+                {selected.story || "เมนูนี้ยังไม่มีเรื่องราวเพิ่มเติม"}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
