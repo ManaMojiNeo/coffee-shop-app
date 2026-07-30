@@ -56,6 +56,10 @@ export const CATEGORY_LABELS: Record<string, string> = {
   BAKERY: "เบเกอรี่",
 };
 
+export function getMe() {
+  return request<{ user: { userId: string; shopId: string; role: string } }>("/api/auth/me");
+}
+
 export function getMenu() {
   return request<{ items: MenuItem[] }>("/api/menu");
 }
