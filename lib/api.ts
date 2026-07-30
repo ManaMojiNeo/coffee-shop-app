@@ -6,6 +6,7 @@ export interface MenuItem {
   cost: string;
   imageUrl: string | null;
   story: string | null;
+  isActive: boolean;
 }
 
 export interface MenuRequest {
@@ -57,6 +58,44 @@ export const CATEGORY_LABELS: Record<string, string> = {
 
 export function getMenu() {
   return request<{ items: MenuItem[] }>("/api/menu");
+}
+
+export function createMenuItem(data: {
+  name: string;
+  category: string;
+  price: number;
+  cost: number;
+  imageUrl?: string;
+  story?: string;
+}) {
+  return request<{ item: MenuItem }>("/api/menu", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export function updateMenuItem(
+  id: string,
+  data: Partial<{
+    name: string;
+    category: string;
+    price: number;
+    cost: number;
+    imageUrl: string;
+    story: string;
+    isActive: boolean;
+  }>
+) {
+  return request<{ item: MenuItem }>(`/api/menu/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+export function deleteMenuItem(id: string) {
+  return request<{ item: MenuItem }>(`/api/menu/${id}`, {
+    method: "DELETE",
+  });
 }
 
 export function getMenuRequests() {
