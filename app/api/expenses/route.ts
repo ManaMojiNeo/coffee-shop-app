@@ -30,9 +30,17 @@ export async function POST(req: NextRequest) {
 
   const { category, amount, note } = await req.json();
 
-  if (!category || !amount) {
+  if (!category || amount === undefined || amount === null) {
     return NextResponse.json(
       { error: "กรุณาระบุหมวดหมู่และจำนวนเงิน" },
+      { status: 400 }
+    );
+  }
+
+  const amountNum = Number(amount);
+  if (!Number.isFinite(amountNum) || amountNum <= 0) {
+    return NextResponse.json(
+      { error: "จำนวนเงินต้องมากกว่า 0" },
       { status: 400 }
     );
   }
@@ -42,7 +50,7 @@ export async function POST(req: NextRequest) {
       shopId: auth.shopId,
       recordedById: auth.userId,
       category,
-      amount,
+      amount: amountNum,
       note,
     },
   });
