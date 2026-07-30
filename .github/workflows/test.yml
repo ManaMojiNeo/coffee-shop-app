@@ -1,0 +1,23 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Run unit tests (ไม่พึ่ง Network)
+        run: node --test tests/unit/
+      - name: Run integration tests (เรียก Production API จริง)
+        run: node --test tests/integration/
+      - name: Run security tests (เรียก Production API จริง)
+        run: node --test tests/security/
+      - name: Run E2E tests (เรียก Production API จริง)
+        run: node --test tests/e2e/
